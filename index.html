@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#173f35">
+<title>Laboratorio Genético | Efecto cuello de botella</title>
+<style>
+:root{
+ --ink:#20352e;--muted:#62766d;--bg:#edf4ef;--paper:#fffefa;
+ --green:#1f6b50;--green2:#2e8b65;--line:#d9e5dc;--gold:#f0c96b;
+ --red:#b94d50;--blue:#467fbd;--shadow:0 12px 35px #173f3510;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;line-height:1.55}
+button,select{font:inherit}
+button{cursor:pointer}
+.hero{background:radial-gradient(circle at 85% 20%,#3c856b 0,transparent 26%),linear-gradient(135deg,#153c33,#22684f);color:#fff;padding:32px 18px 36px}
+.hero-inner{max-width:1120px;margin:auto;display:grid;grid-template-columns:1.5fr .7fr;gap:20px;align-items:center}
+.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:.76rem;font-weight:800;color:#c6e8d3}
+h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.04;margin:10px 0 14px;max-width:720px}
+.hero p{max-width:680px;color:#e0f1e7;margin:0}
+.hero-art{font-size:clamp(4rem,10vw,7rem);text-align:center;filter:drop-shadow(0 8px 8px #0a261d55)}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.pill{background:#ffffff18;border:1px solid #ffffff32;padding:6px 10px;border-radius:99px;font-size:.82rem}
+main{max-width:1120px;margin:auto;padding:20px}
+.layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(270px,.8fr);gap:18px;align-items:start}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:var(--shadow)}
+.panel h2{font-size:1.22rem;margin:0 0 8px}
+.panel h3{font-size:1rem;margin:18px 0 8px}
+.kicker{font-size:.76rem;text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:var(--green)}
+.sub{color:var(--muted);font-size:.94rem;margin-top:0}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.badge{background:#e5f2e9;color:#245a43;border-radius:99px;padding:5px 9px;font-size:.78rem;font-weight:800;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:15px 0}
+.stat{background:#f1f6f1;border:1px solid var(--line);border-radius:13px;padding:12px}
+.stat span{display:block;font-size:.76rem;color:var(--muted)}
+.stat strong{font-size:1.35rem;display:block;margin-top:2px}
+.population{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;align-items:center;min-height:85px;padding:12px;background:#f4f7f1;border:1px dashed #cbd9ce;border-radius:14px}
+.beetle{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:white;font-size:22px;position:relative;box-shadow:0 2px 5px #1d37240c}
+.beetle::after{content:"";position:absolute;bottom:1px;left:7px;right:7px;height:3px;border-radius:4px;background:var(--c)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.legend span{font-size:.8rem;display:flex;align-items:center;gap:5px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+button.primary{background:var(--green);color:white;border:0;border-radius:11px;padding:11px 15px;font-weight:800}
+button.primary:hover{background:#164c39}
+button.secondary{background:#eaf2eb;color:#235b43;border:1px solid #d0e0d3;border-radius:11px;padding:10px 14px;font-weight:750}
+button:disabled{opacity:.45;cursor:not-allowed}
+select{padding:10px 12px;border:1px solid #cbd9ce;background:white;border-radius:10px;color:var(--ink);max-width:100%}
+.notice{padding:12px 14px;border-radius:12px;background:#fff5d9;border:1px solid #f0dfaa;margin-top:12px;font-size:.92rem}
+.notice.good{background:#e8f5eb;border-color:#c9e4d0}
+.notice.alert{background:#fff0ee;border-color:#f1d0c9}
+.event-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.event-choice{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;text-align:left;color:var(--ink)}
+.event-choice strong{display:block;font-size:.9rem;margin-bottom:4px}
+.event-choice span{display:block;font-size:.8rem;color:var(--muted)}
+.event-choice.selected{border:2px solid var(--green);background:#eff8f0}
+.chart-wrap{height:220px;position:relative}
+canvas{width:100%;height:100%;display:block}
+.chart-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:.8rem;color:var(--muted)}
+.history{display:grid;gap:8px}
+.history-row{display:grid;grid-template-columns:78px 1fr 42px;gap:10px;align-items:center;font-size:.82rem}
+.bar{height:9px;background:#e9efe9;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--green2)}
+.mini{font-size:.8rem;color:var(--muted)}
+.quiz-question{padding:13px;background:#f3f7f2;border-radius:13px;margin:12px 0}
+.quiz-options{display:grid;gap:8px}
+.quiz-options button{text-align:left;border:1px solid var(--line);background:white;border-radius:10px;padding:10px 12px;color:var(--ink)}
+.quiz-options button:hover{background:#edf6ef}
+.quiz-options button.correct{background:#def3e3;border-color:#72b889}
+.quiz-options button.incorrect{background:#ffebe8;border-color:#d99b91}
+.progress{height:8px;background:#e8eee8;border-radius:99px;overflow:hidden;margin:12px 0}
+.progress div{height:100%;background:var(--green2);width:0;transition:width .25s}
+.glossary{display:grid;gap:11px}
+.glossary dt{font-weight:800;color:var(--green)}
+.glossary dd{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+footer{text-align:center;color:var(--muted);font-size:.82rem;padding:22px}
+hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+@media(max-width:820px){.hero-inner,.layout{grid-template-columns:1fr}.hero-art{display:none}.stats{grid-template-columns:repeat(2,1fr)}.event-grid{grid-template-columns:1fr}.panel{padding:16px}main{padding:12px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="hero">
+ <div class="hero-inner">
+  <div>
+   <div class="eyebrow">Laboratorio interactivo · Biología 9.º</div>
+   <h1>El cuello de botella</h1>
+   <p>Una catástrofe puede cambiar por azar las variantes genéticas de una población. Experimenta, compara los resultados y descubre por qué crecer en número no siempre significa recuperar la diversidad.</p>
+   <div class="hero-tags"><span class="pill">🧬 Deriva genética</span><span class="pill">🎲 Azar</span><span class="pill">🌱 Recuperación</span></div>
+  </div>
+  <div class="hero-art" aria-hidden="true">🪲🌿</div>
+ </div>
+</header>
+
+<main>
+ <div class="layout">
+  <div>
+   <section class="panel">
+    <div class="topline"><div><div class="kicker">Fase 1</div><h2>La población original</h2></div><span class="badge">Antes del evento</span></div>
+    <p class="sub">Cada color representa una variante de un gen. En este modelo sencillo, todos los escarabajos tienen la misma probabilidad de sobrevivir: no hay selección por color.</p>
+    <div class="stats">
+     <div class="stat"><span>Individuos</span><strong id="popCount">40</strong></div>
+     <div class="stat"><span>Variantes presentes</span><strong id="alleleCount">4</strong></div>
+     <div class="stat"><span>Diversidad (Shannon)</span><strong id="diversity">1.39</strong></div>
+     <div class="stat"><span>Generación</span><strong id="generation">0</strong></div>
+    </div>
+    <div id="population" class="population" aria-label="Población de escarabajos"></div>
+    <div class="legend" id="legend"></div>
+    <div class="controls"><button class="secondary" id="shuffleBtn">🎲 Mezclar población</button><button class="secondary" id="resetBtn">↺ Reiniciar experimento</button></div>
+   </section>
+
+   <section class="panel">
+    <div class="topline"><div><div class="kicker">Fase 2</div><h2>Elige una catástrofe</h2></div><span class="badge">Supervivencia al azar</span></div>
+    <p class="sub">Selecciona un evento. Cuanto más drástica sea la reducción, más fuerte puede ser el efecto sobre la diversidad genética.</p>
+    <div class="event-grid">
+     <button class="event-choice selected" data-rate="0.5" data-name="Tormenta"><strong>🌧️ Tormenta</strong><span>Sobrevive cerca del 50 %</span></button>
+     <button class="event-choice" data-rate="0.25" data-name="Inundación"><strong>🌊 Inundación</strong><span>Sobrevive cerca del 25 %</span></button>
+     <button class="event-choice" data-rate="0.1" data-name="Incendio intenso"><strong>🔥 Incendio intenso</strong><span>Sobrevive cerca del 10 %</span></button>
+    </div>
+    <div class="controls"><button class="primary" id="disasterBtn">⚡ Simular catástrofe</button><button class="secondary" id="recoverBtn" disabled>🌱 Recuperar población</button></div>
+    <div id="status" class="notice" role="status" aria-live="polite">Elige un evento y pulsa “Simular catástrofe”.</div>
+    <h3>Después del evento</h3>
+    <div id="survivors" class="population" aria-label="Escarabajos supervivientes"><span class="mini">Todavía no hay supervivientes que mostrar.</span></div>
+    <div class="stats">
+     <div class="stat"><span>Supervivientes</span><strong id="survivorCount">—</strong></div>
+     <div class="stat"><span>Variantes restantes</span><strong id="survivorAlleles">—</strong></div>
+     <div class="stat"><span>Diversidad restante</span><strong id="survivorDiversity">—</strong></div>
+     <div class="stat"><span>Variantes perdidas</span><strong id="lostAlleles">—</strong></div>
+    </div>
+   </section>
+
+   <section class="panel">
+    <div class="topline"><div><div class="kicker">Fase 3</div><h2>Analiza los cambios</h2></div><span class="badge">Datos del experimento</span></div>
+    <p class="sub">La frecuencia alélica indica qué proporción de la población pertenece a cada variante. Observa cómo puede cambiar después de una muestra aleatoria de supervivientes.</p>
+    <div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfico de frecuencias de variantes genéticas antes y después del evento"></canvas></div>
+    <div class="chart-legend" id="chartLegend"></div>
+    <hr>
+    <h3>Historial de generaciones</h3>
+    <div id="history" class="history"><p class="mini">Los resultados aparecerán aquí después de la catástrofe.</p></div>
+    <div id="analysis" class="notice">Pista: una población pequeña es más vulnerable a que desaparezcan variantes por azar.</div>
+   </section>
+
+   <section class="panel">
+    <div class="kicker">Fase 4</div><h2>Desafío de conocimientos 🏆</h2>
+    <p class="sub">Responde cinco preguntas y revisa tu puntuación al final.</p>
+    <div class="progress"><div id="quizProgress"></div></div>
+    <div id="quiz"><p>Pulsa el botón para empezar el desafío.</p></div>
+    <div class="controls"><button class="primary" id="startQuiz">Comenzar desafío</button></div>
+    <div id="quizFeedback" class="notice" aria-live="polite">¡Tú puedes!</div>
+   </section>
+  </div>
+
+  <aside>
+   <section class="panel">
+    <div class="kicker">Tu misión</div><h2>¿Qué debes descubrir?</h2>
+    <ol>
+     <li>Compara la población antes y después de la catástrofe.</li>
+     <li>Cuenta cuántas variantes se mantienen.</li>
+     <li>Recupera la población y compara otra vez.</li>
+     <li>Repite el experimento con eventos distintos.</li>
+    </ol>
+    <div class="notice good">Objetivo: demostrar que la población puede aumentar de tamaño sin recuperar todos los alelos que perdió.</div>
+   </section>
+   <section class="panel">
+    <div class="kicker">Conceptos clave</div><h2>Mini glosario</h2>
+    <dl class="glossary">
+     <div><dt>Deriva genética</dt><dd>Cambio aleatorio en las frecuencias de los alelos de una población.</dd></div>
+     <div><dt>Cuello de botella</dt><dd>Reducción drástica de una población que puede disminuir su diversidad genética.</dd></div>
+     <div><dt>Alelo</dt><dd>Una de las variantes posibles de un gen.</dd></div>
+     <div><dt>Frecuencia alélica</dt><dd>Proporción de una variante dentro de la población.</dd></div>
+     <div><dt>Selección natural</dt><dd>Proceso por el que ciertas características heredables favorecen la supervivencia o reproducción en un ambiente concreto.</dd></div>
+    </dl>
+   </section>
+   <section class="panel">
+    <div class="kicker">Reflexiona</div><h2>Pregunta para la clase</h2>
+    <p>Si los supervivientes vuelven a reproducirse hasta formar una población grande, ¿por qué podría seguir siendo genéticamente menos diversa?</p>
+    <button class="secondary" id="showAnswer">Mostrar explicación</button>
+    <p id="answer" hidden>Porque los alelos que desaparecieron por azar no vuelven automáticamente cuando nacen más individuos. Podrían reaparecer mediante mutación o flujo génico, pero no está garantizado.</p>
+   </section>
+  </aside>
+ </div>
+</main>
+<footer>Simulación educativa: los escarabajos y sus variantes son un modelo simplificado. Los resultados cambian en cada experimento.</footer>
+
+<script>
+const TYPES=[
+ {id:"green",name:"Verde",color:"#35a853"},
+ {id:"blue",name:"Azul",color:"#4387d4"},
+ {id:"yellow",name:"Amarillo",color:"#e4b936"},
+ {id:"red",name:"Rojo",color:"#df6a69"}
+];
+const INITIAL_EACH=10;
+let population=[], survivors=[], recoveredPopulation=null;
+let selectedRate=.5, selectedEvent="Tormenta", generation=0, hasDisaster=false;
+let historyData=[], quizIndex=0, quizScore=0, quizActive=false, quizAnswered=false;
+const $=id=>document.getElementById(id);
+
+function shuffle(arr){
+ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
+ return arr;
+}
+function initialPopulation(){
+ const arr=[];
+ TYPES.forEach(t=>{for(let i=0;i<INITIAL_EACH;i++)arr.push(t.id)});
+ return shuffle(arr);
+}
+function counts(arr){
+ const c={};TYPES.forEach(t=>c[t.id]=0);arr.forEach(x=>c[x]++);return c;
+}
+function alleleCount(arr){return Object.values(counts(arr)).filter(n=>n>0).length}
+function diversity(arr){
+ if(!arr.length)return 0;
+ const c=counts(arr),n=arr.length;
+ return -Object.values(c).filter(x=>x>0).reduce((sum,x)=>{const p=x/n;return sum+p*Math.log(p)},0);
+}
+function frequencies(arr){
+ const c=counts(arr),n=arr.length||1;
+ const out={};TYPES.forEach(t=>out[t.id]=c[t.id]/n);return out;
+}
+function renderBugs(id,arr){
+ const el=$(id);el.innerHTML="";
+ if(!arr.length){el.innerHTML='<span class="mini">No hay individuos que mostrar.</span>';return}
+ arr.forEach((type,i)=>{
+  const t=TYPES.find(x=>x.id===type),b=document.createElement("span");
+  b.className="beetle";b.style.setProperty("--c",t.color);b.title=t.name;
+  b.textContent="🪲";b.setAttribute("aria-label","Escarabajo "+t.name);
+  el.appendChild(b);
+ });
+}
+function renderLegend(){
+ $("legend").innerHTML=TYPES.map(t=>`<span><i class="dot" style="background:${t.color}"></i>${t.name}</span>`).join("");
+ $("chartLegend").innerHTML=TYPES.map(t=>`<span><i class="dot" style="background:${t.color}"></i>${t.name}</span>`).join("");
+}
+function renderStats(){
+ $("popCount").textContent=population.length;
+ $("alleleCount").textContent=alleleCount(population);
+ $("diversity").textContent=diversity(population).toFixed(2);
+ $("generation").textContent=generation;
+ renderBugs("population",population);
+}
+function addHistory(label,arr){
+ historyData.push({label,n:arr.length,alleles:alleleCount(arr),div:diversity(arr)});
+ $("history").innerHTML=historyData.slice().reverse().map(h=>`
+  <div class="history-row"><strong>${h.label}</strong><div><div class="bar"><i style="width:${h.n/40*100}%"></i></div><span class="mini">${h.n} individuos · ${h.alleles} variantes · H=${h.div.toFixed(2)}</span></div><b>${h.n}</b></div>`).join("");
+}
+function drawChart(before,after){
+ const canvas=$("chart"),ctx=canvas.getContext("2d");
+ const rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+ canvas.width=Math.max(1,Math.floor(rect.width*dpr));canvas.height=Math.max(1,Math.floor(rect.height*dpr));
+ ctx.scale(dpr,dpr);
+ const w=rect.width,h=rect.height;
+ ctx.clearRect(0,0,w,h);
+ const left=35,right=12,top=14,bottom=35,plotH=h-top-bottom,plotW=w-left-right;
+ ctx.font="11px Arial";ctx.strokeStyle="#dce6dd";ctx.fillStyle="#62766d";ctx.lineWidth=1;
+ for(let i=0;i<=4;i++){
+  const y=top+plotH*i/4;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();
+  ctx.fillText((1-i/4).toFixed(2),2,y+4);
+ }
+ const groups=[{label:"Antes",data:frequencies(before)},{label:"Después",data:frequencies(after)}];
+ const slot=plotW/2,barW=Math.min(30,slot/(TYPES.length+1));
+ groups.forEach((g,gi)=>{
+  TYPES.forEach((t,ti)=>{
+   const val=g.data[t.id],x=left+gi*slot+slot*.18+ti*(barW+4),bh=val*plotH,y=top+plotH-bh;
+   ctx.fillStyle=t.color;ctx.beginPath();ctx.roundRect(x,y,barW,bh,4);ctx.fill();
+  });
+  ctx.fillStyle="#20352e";ctx.textAlign="center";ctx.fillText(g.label,left+gi*slot+slot/2,h-10);
+ });
+ ctx.textAlign="start";
+}
+function updateComparison(){
+ const a=alleleCount(survivors),lost=alleleCount(population)-a;
+ $("survivorCount").textContent=survivors.length+" / "+population.length;
+ $("survivorAlleles").textContent=a+" / "+TYPES.length;
+ $("survivorDiversity").textContent=diversity(survivors).toFixed(2);
+ $("lostAlleles").textContent=lost;
+ drawChart(population,survivors);
+ const status=$("analysis");
+ if(lost>0){
+  status.className="notice alert";
+  status.textContent=`En esta simulación desaparecieron ${lost} variante(s) de la muestra superviviente. Como los individuos se eligieron al azar, no significa que esos alelos fueran peores.`;
+ }else{
+  status.className="notice good";
+  status.textContent="Esta vez sobrevivieron las cuatro variantes. El cuello de botella también puede cambiar sus frecuencias aunque no desaparezca ninguna.";
+ }
+}
+function runDisaster(){
+ if(hasDisaster)return;
+ hasDisaster=true;recoveredPopulation=null;
+ survivors=population.filter(()=>Math.random()<selectedRate);
+ if(!survivors.length)survivors.push(population[Math.floor(Math.random()*population.length)]);
+ generation++;
+ renderBugs("survivors",survivors);
+ $("survivorCount").textContent=survivors.length+" / "+population.length;
+ $("survivorAlleles").textContent=alleleCount(survivors)+" / "+TYPES.length;
+ $("survivorDiversity").textContent=diversity(survivors).toFixed(2);
+ $("lostAlleles").textContent=alleleCount(population)-alleleCount(survivors);
+ $("recoverBtn").disabled=false;$("disasterBtn").disabled=true;
+ $("status").className="notice";
+ $("status").textContent=`La ${selectedEvent.toLowerCase()} redujo la población de ${population.length} a ${survivors.length} individuos. La supervivencia fue aleatoria: el color no determinó quién sobrevivió.`;
+ updateComparison();addHistory("Tras evento",survivors);
+}
+function recover(){
+ if(!hasDisaster||recoveredPopulation)return;
+ const next=[];
+ // La siguiente generación se forma a partir de los alelos supervivientes.
+ for(let i=0;i<INITIAL_EACH*TYPES.length;i++)next.push(survivors[Math.floor(Math.random()*survivors.length)]);
+ recoveredPopulation=next;generation++;population=next;
+ renderStats();renderBugs("survivors",survivors);
+ drawChart(survivors,population);
+ $("status").className="notice good";
+ $("status").textContent=`¡La población creció de nuevo hasta ${population.length} individuos! Sin embargo, ahora presenta ${alleleCount(population)} variantes. Los alelos ausentes no reaparecen automáticamente por tener más individuos.`;
+ $("recoverBtn").disabled=true;
+ addHistory("Recuperación",population);
+ $("survivorCount").textContent=population.length+" (recuperada)";
+ $("survivorAlleles").textContent=alleleCount(population)+" / "+TYPES.length;
+ $("survivorDiversity").textContent=diversity(population).toFixed(2);
+ $("lostAlleles").textContent=TYPES.length-alleleCount(population);
+}
+function resetExperiment(){
+ population=initialPopulation();survivors=[];recoveredPopulation=null;generation=0;hasDisaster=false;historyData=[];
+ $("disasterBtn").disabled=false;$("recoverBtn").disabled=true;
+ $("status").className="notice";$("status").textContent='Elige un evento y pulsa “Simular catástrofe”.';
+ $("survivors").innerHTML='<span class="mini">Todavía no hay supervivientes que mostrar.</span>';
+ $("survivorCount").textContent="—";$("survivorAlleles").textContent="—";$("survivorDiversity").textContent="—";$("lostAlleles").textContent="—";
+ $("history").innerHTML='<p class="mini">Los resultados aparecerán aquí después de la catástrofe.</p>';
+ $("analysis").className="notice";$("analysis").textContent="Pista: una población pequeña es más vulnerable a que desaparezcan variantes por azar.";
+ renderStats();drawChart(population,population);
+}
+document.querySelectorAll(".event-choice").forEach(btn=>btn.addEventListener("click",()=>{
+ if(hasDisaster)return;
+ document.querySelectorAll(".event-choice").forEach(b=>b.classList.remove("selected"));
+ btn.classList.add("selected");selectedRate=Number(btn.dataset.rate);selectedEvent=btn.dataset.name;
+}));
+$("disasterBtn").addEventListener("click",runDisaster);
+$("recoverBtn").addEventListener("click",recover);
+$("resetBtn").addEventListener("click",resetExperiment);
+$("shuffleBtn").addEventListener("click",()=>{
+ if(hasDisaster){$("status").textContent="Reinicia el experimento antes de mezclar otra población.";return}
+ shuffle(population);renderStats();drawChart(population,population);
+ $("status").textContent="Población mezclada. La cantidad de cada variante no cambió.";
+});
+$("showAnswer").addEventListener("click",()=>{
+ const a=$("answer");a.hidden=!a.hidden;$("showAnswer").textContent=a.hidden?"Mostrar explicación":"Ocultar explicación";
+});
+const QUESTIONS=[
+ {q:"¿Qué causa principalmente la deriva genética?",a:["Que sobrevivan siempre los individuos más fuertes","El azar en qué individuos sobreviven o se reproducen","Que los organismos cambien porque lo necesitan"],correct:1,why:"La deriva genética ocurre por cambios aleatorios en las frecuencias de los alelos."},
+ {q:"¿Qué describe mejor el efecto cuello de botella?",a:["Una reducción drástica de la población","Un aumento de todas las variantes","La adaptación inmediata de todos los individuos"],correct:0,why:"Una catástrofe puede dejar una población pequeña que representa solo parte de la diversidad original."},
+ {q:"Después de una recuperación, ¿qué puede ocurrir con la diversidad?",a:["Siempre vuelve exactamente a la original","Puede seguir siendo menor que antes","Todos los alelos desaparecen siempre"],correct:1,why:"El tamaño puede recuperarse, pero los alelos perdidos no reaparecen automáticamente."},
+ {q:"En este juego, ¿por qué puede desaparecer una variante?",a:["Porque es de un color menos bonito","Porque necesariamente es perjudicial","Por azar, si ninguno de sus portadores sobrevive"],correct:2,why:"En el modelo, el color no ofrece ventaja; la desaparición ocurre por muestreo aleatorio."},
+ {q:"¿Cuál es una diferencia entre deriva genética y selección natural?",a:["La deriva depende del azar; la selección se relaciona con diferencias en supervivencia o reproducción","Son exactamente lo mismo","La selección natural siempre ocurre por completo al azar"],correct:0,why:"Ambos procesos pueden cambiar frecuencias alélicas, pero sus mecanismos son diferentes."}
+];
+function startQuiz(){
+ quizIndex=0;quizScore=0;quizActive=true;quizAnswered=false;
+ $("startQuiz").textContent="Reiniciar desafío";showQuestion();
+}
+function showQuestion(){
+ quizAnswered=false;
+ const q=QUESTIONS[quizIndex];
+ $("quizProgress").style.width=(quizIndex/QUESTIONS.length*100)+"%";
+ $("quiz").innerHTML=`<div class="quiz-question"><strong>Pregunta ${quizIndex+1} de ${QUESTIONS.length}</strong><p>${q.q}</p><div class="quiz-options" id="options"></div></div>`;
+ q.a.forEach((ans,i)=>{
+  const b=document.createElement("button");b.textContent=ans;b.addEventListener("click",()=>answerQuiz(i,b));$("options").appendChild(b);
+ });
+ $("quizFeedback").className="notice";$("quizFeedback").textContent="Elige una respuesta.";
+}
+function answerQuiz(index,button){
+ if(quizAnswered)return;quizAnswered=true;
+ const q=QUESTIONS[quizIndex],buttons=$("options").querySelectorAll("button");
+ buttons[q.correct].classList.add("correct");
+ if(index===q.correct){quizScore++;$("quizFeedback").className="notice good";$("quizFeedback").textContent="¡Correcto! "+q.why;}
+ else{$("quizFeedback").className="notice alert";button.classList.add("incorrect");$("quizFeedback").textContent="No exactamente. "+q.why;}
+ $("quizProgress").style.width=((quizIndex+1)/QUESTIONS.length*100)+"%";
+ const next=document.createElement("button");next.className="primary";next.style.marginTop="10px";next.textContent=quizIndex===QUESTIONS.length-1?"Ver resultado":"Siguiente pregunta →";
+ next.addEventListener("click",()=>{
+  quizIndex++;
+  if(quizIndex<QUESTIONS.length)showQuestion();
+  else{
+   quizActive=false;
+   $("quiz").innerHTML=`<div class="quiz-question"><h3>${quizScore===5?"¡Excelente trabajo! 🏆":quizScore>=3?"¡Buen trabajo! 🌿":"¡Sigue practicando! 🧬"}</h3><p>Obtuviste <strong>${quizScore} de ${QUESTIONS.length}</strong> respuestas correctas.</p><p>${quizScore===5?"Dominas los conceptos principales.": "Puedes repetir el desafío y repasar el mini glosario."}</p></div>`;
+   $("quizFeedback").className="notice good";$("quizFeedback").textContent="¡Gracias por participar!";
+  }
+ });
+ $("quiz").appendChild(next);
+}
+$("startQuiz").addEventListener("click",startQuiz);
+window.addEventListener("resize",()=>drawChart(hasDisaster?population:population,survivors.length?survivors:population));
+renderLegend();resetExperiment();
+</script>
+</body>
+</html>
